@@ -1,15 +1,23 @@
-import uvicorn
+import uvicorn, asyncio
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
+from contextlib import asynccontextmanager
 
 
 from schemas import TrackedPlayerResponse, AddTrackedPlayer
 from deps import get_db
 from crud import add_tracked_player, get_tracked_players, delete_tracked_player
+from services.tracker import track_players
 
 
+#РАЗОБРАТЬ ПОДРОБНО
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    task = asyncio.create_task(track_players())
+    yield
+    task.cancel()
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 
 
@@ -35,11 +43,10 @@ def parse_query(query: str):
     return nickname
 
 
-@app.get('/tracked-players/')
+@app.get('/tracked-players/', response_model=list[TrackedPlayerResponse])
 def getTrackedPlayers(db: Session = Depends(get_db)):
-    return {
-        "players" : get_tracked_players(db)
-    }
+    return  get_tracked_players(db)
+
 
 
 @app.delete('/tracked-players/{player_id}')
