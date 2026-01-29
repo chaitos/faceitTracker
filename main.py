@@ -4,37 +4,41 @@ from sqlalchemy.orm import Session
 
 
 from schemas import TrackedPlayerResponse, AddTrackedPlayer
-from crud import add_tracked_player
 from deps import get_db
-
+from crud import add_tracked_player, get_tracked_players
 
 
 
 app = FastAPI()
 
 
-trackedPlayers = []
 
 @app.post("/tracked-players/", response_model=TrackedPlayerResponse)
-def addTrackedPlayer(player: AddTrackedPlayer):
+def addTrackedPlayer(player: AddTrackedPlayer, db: Session = Depends(get_db)):
     status = 'ok'
     nickname = parse_query(player.query)
 
+    trackedPlayer, error = add_tracked_player(db, nickname)
+
+    if error:
+        raise HTTPException(status_code=400, detail=error)
 
     return {
         'status':status,
-        "nickname": nickname
+        "nickname": trackedPlayer.nickname
     }
 
+# делает из ссылки профиля ник игрока
 def parse_query(query: str):
     query = query.strip().rstrip("/")  # убираем пробелы и завершающий слеш
     nickname = query.split("/")[-1]  # берём последний сегмент
     return nickname
 
 
-@app.get("/ping/{something}/")
-def hi(something):
-    return {"message" : something}
+@app.get('/tracked-players/')
+def getTrackedPlayers(db: Session = Depends(get_db)):
+    return get_tracked_players(db)
+
 
 
 if __name__ == "__main__":

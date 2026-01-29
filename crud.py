@@ -25,3 +25,7 @@ def add_tracked_player(db:Session, nickname: str):
     db.refresh(player)
 
     return player, None
+
+
+def get_tracked_players(db: Session):
+    players = db.query(TrackedPlayer).all()
