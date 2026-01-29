@@ -1,6 +1,13 @@
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+
 from schemas import TrackedPlayerResponse, AddTrackedPlayer
+from crud import add_tracked_player
+from deps import get_db
+
+
 
 
 app = FastAPI()
