@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from schemas import TrackedPlayerResponse, AddTrackedPlayer
 from deps import get_db
-from crud import add_tracked_player, get_tracked_players
+from crud import add_tracked_player, get_tracked_players, delete_tracked_player
 
 
 
@@ -37,9 +37,18 @@ def parse_query(query: str):
 
 @app.get('/tracked-players/')
 def getTrackedPlayers(db: Session = Depends(get_db)):
-    return get_tracked_players(db)
+    return {
+        "players" : get_tracked_players(db)
+    }
 
+
+@app.delete('/tracked-players/{player_id}')
+def deletTrackedPlayer(player_id: int, db: Session = Depends(get_db)):
+    delete_tracked_player(player_id, db)
+    return {
+        f"игрок удален"
+    }
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", reload=True)
+    uvicorn.run("main:app", reload=True, port=8001)
