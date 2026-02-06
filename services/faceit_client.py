@@ -1,8 +1,12 @@
 import asyncio
 from datetime import datetime, timedelta
 
+
 from enums import PlayerStatus
 from crud import get_tracked_player
+from config import FACEIT_API_KEY
+
+
 
 
 async def get_last_match(nickname):
