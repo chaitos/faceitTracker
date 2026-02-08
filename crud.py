@@ -6,18 +6,23 @@ from enums import PlayerStatus
 
 MAX_PLAYERS = 20
 
-def add_tracked_player(db:Session, nickname: str):
-    if db.query(TrackedPlayer).filter_by(nickname=nickname).first():
-        return None, "игрок с этим ником уже добавлен"
+def add_tracked_player(
+        db:Session, nickname: str,
+        player_id: str,
+        last_activity_at: str | None = None,
+        last_match_id: str | None = None,):
+    if db.query(TrackedPlayer).filter_by(player_id=player_id).first():
+        return None, "такой игрок уже добавлен"
 
-    if db.query(TrackedPlayer).count() > MAX_PLAYERS:
+    if db.query(TrackedPlayer).count() >= MAX_PLAYERS:
         return None, "Лимит игроков превышен, удалите кого-то прежде чем добавить"
 
     player = TrackedPlayer(
         nickname=nickname,
         status=PlayerStatus.OFFLINE.value,
-        last_activity_at="unknown",
-        last_match_id="unknown"
+        player_id=player_id,
+        last_activity_at=last_activity_at,
+        last_match_id=last_match_id
     )
     db.add(player)
     db.commit()
@@ -31,12 +36,12 @@ def get_tracked_players(db: Session):
     players = db.query(TrackedPlayer).all()
     return players
 
-def get_tracked_player(nickname: str, db: Session):
-
-    player = db.query(TrackedPlayer).get(nickname)
+def get_tracked_player(db: Session, nickname: str):
+    player = db.query(TrackedPlayer).filter_by(nickname=nickname).first()
     return player
 
-def delete_tracked_player(player_id, db: Session):
+
+def delete_tracked_player(db: Session, player_id):
     if not db.query(TrackedPlayer).get(player_id):
         return None, "игрока с таким айди нет в бд"
     player_to_delete = db.query(TrackedPlayer).get(player_id)
