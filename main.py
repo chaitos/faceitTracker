@@ -49,12 +49,11 @@ def getTrackedPlayers(db: Session = Depends(get_db)):
 
 
 
-@app.delete('/tracked-players/{player_id}')
-def deletTrackedPlayer(player_id: int, db: Session = Depends(get_db)):
-    delete_tracked_player(player_id, db)
-    return {
-        f"игрок удален"
-    }
+@app.delete("/tracked-players/{player_id}", status_code=204)
+def deletTrackedPlayer(player_id: str, db: Session = Depends(get_db)):
+    delete_tracked_player(db, player_id)
+
+    return {"detail": "Игрок удалён"}
 
 
 if __name__ == "__main__":

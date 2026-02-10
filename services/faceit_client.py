@@ -12,57 +12,69 @@ from config import FACEIT_API_KEY
 
 
 async def get_last_match(player_id: str) -> dict:
-    headers = {
-        "Authorization": f"Bearer {FACEIT_API_KEY}"
-    }
+    headers = {"Authorization": f"Bearer {FACEIT_API_KEY}"}
+
     async with httpx.AsyncClient(
         base_url="https://open.faceit.com/data/v4",
         headers=headers,
         timeout=10.0
     ) as client:
 
-        response = await client.get(
+        r = await client.get(
             f"/players/{player_id}/history",
             params={"game": "cs2", "limit": 1}
         )
 
-        if response.status_code != 200:
+        if r.status_code != 200:
             raise Exception("Failed to get match history")
 
-        data = response.json()
-        items = data.get("items", [])
+        items = r.json().get("items", [])
 
         if not items:
             return {
                 "last_activity_at": None,
                 "last_match_id": None,
-                "is_match_finished": True
+                "match_status": None
             }
 
         match = items[0]
+        match_id = match["match_id"]
+
+        # ⬇️ ВТОРОЙ ЗАПРОС
+        match_resp = await client.get(f"/matches/{match_id}")
+        if match_resp.status_code != 200:
+            raise Exception("Failed to get match details")
+
+        match_data = match_resp.json()
 
         return {
             "last_activity_at": datetime.utcfromtimestamp(
                 match["finished_at"] or match["started_at"]
             ),
-            "last_match_id": match["match_id"],
-            "is_match_finished": match["finished_at"] is not None
+            "last_match_id": match_id,
+            "match_status": match_data["status"]  # ONGOING / FINISHED
         }
 
+
 def calculate_player_status(last_match: dict) -> PlayerStatus:
-    if last_match["last_match_id"] is None:
+    if not last_match["last_activity_at"]:
         return PlayerStatus.OFFLINE
 
-    if not last_match["is_match_finished"]:
+    if last_match["match_status"] == "ONGOING":
         return PlayerStatus.IN_MATCH
 
     now = datetime.utcnow()
     diff = now - last_match["last_activity_at"]
 
     if diff <= timedelta(minutes=15):
+        return PlayerStatus.RECENT_MATCH
+
+    if diff <= timedelta(hours=24):
         return PlayerStatus.SEARCHING
 
     return PlayerStatus.OFFLINE
+
+
 
 async def get_player_by_nickname(nickname: str) -> dict:
     headers = {

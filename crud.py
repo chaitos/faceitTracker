@@ -43,11 +43,13 @@ def get_tracked_player(db: Session, nickname: str):
     return player
 
 
-def delete_tracked_player(db: Session, player_id):
-    if not db.query(TrackedPlayer).get(player_id):
+def delete_tracked_player(db: Session, player_id: str):
+    player = db.query(TrackedPlayer).filter_by(player_id=player_id).first()
+
+    if not player:
         return None, "игрока с таким айди нет в бд"
-    player_to_delete = db.query(TrackedPlayer).get(player_id)
-    db.delete(player_to_delete)
+
+    db.delete(player)
     db.commit()
     return None
 

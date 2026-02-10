@@ -18,7 +18,7 @@ async def track_players():
                 continue
 
             tasks = [
-                get_last_match(player.nickname)
+                get_last_match(player.player_id)
                 for player in players
             ]
 
