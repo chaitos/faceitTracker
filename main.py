@@ -8,9 +8,9 @@ from schemas import TrackedPlayerResponse, AddTrackedPlayer
 from deps import get_db
 from crud import add_tracked_player, get_tracked_players, delete_tracked_player
 from services.tracker import track_players
+from services.faceit_client import get_player_by_nickname
 
-
-#РАЗОБРАТЬ ПОДРОБНО
+# фоновый процесс
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     task = asyncio.create_task(track_players())
@@ -22,19 +22,19 @@ app = FastAPI(lifespan=lifespan)
 
 
 @app.post("/tracked-players/", response_model=TrackedPlayerResponse)
-def addTrackedPlayer(player: AddTrackedPlayer, db: Session = Depends(get_db)):
+async def addTrackedPlayer(player: AddTrackedPlayer, db: Session = Depends(get_db)):
     status = 'ok'
-    nickname = parse_query(player.query)
 
-    trackedPlayer, error = add_tracked_player(db, nickname)
+    nickname = parse_query(player.query)
+    faceit_player = await get_player_by_nickname(nickname)
+
+
+    trackedPlayer, error = add_tracked_player(db, nickname=faceit_player['nickname'], player_id=faceit_player["player_id"])
 
     if error:
         raise HTTPException(status_code=400, detail=error)
 
-    return {
-        'status':status,
-        "nickname": trackedPlayer.nickname
-    }
+    return trackedPlayer
 
 # делает из ссылки профиля ник игрока
 def parse_query(query: str):
