@@ -1,7 +1,9 @@
+from datetime import datetime
 
 from sqlalchemy.orm import Session
 from models import TrackedPlayer
 from enums import PlayerStatus
+
 
 
 MAX_PLAYERS = 20
@@ -48,3 +50,11 @@ def delete_tracked_player(db: Session, player_id):
     db.delete(player_to_delete)
     db.commit()
     return None
+
+
+def update_tracked_player(db: Session, player: TrackedPlayer, last_activity_at: datetime, last_match_id: int, status: PlayerStatus):
+    player.last_activity_at = last_activity_at
+    player.last_match_id = last_match_id
+    player.status = status.value
+
+    db.commit()
