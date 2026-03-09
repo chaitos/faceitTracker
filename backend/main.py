@@ -3,6 +3,11 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from contextlib import asynccontextmanager
 
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+
+
+
 
 from schemas import TrackedPlayerResponse, AddTrackedPlayer
 from deps import get_db
@@ -20,8 +25,18 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+FRONTEND_DIST = BASE_DIR / "frontend" / "dist"
 
-@app.post("/tracked-players/", response_model=TrackedPlayerResponse)
+if FRONTEND_DIST.exists():
+    app.mount(
+        "/assets",
+        StaticFiles(directory=FRONTEND_DIST / "assets"),
+        name="assets"
+    )
+
+
+@app.post("/api/tracked-players/", response_model=TrackedPlayerResponse)
 async def addTrackedPlayer(player: AddTrackedPlayer, db: Session = Depends(get_db)):
     status = 'ok'
 
@@ -43,18 +58,39 @@ def parse_query(query: str):
     return nickname
 
 
-@app.get('/tracked-players/', response_model=list[TrackedPlayerResponse])
+@app.get("/api/tracked-players/", response_model=list[TrackedPlayerResponse])
 def getTrackedPlayers(db: Session = Depends(get_db)):
     return  get_tracked_players(db)
 
 
 
-@app.delete("/tracked-players/{player_id}", status_code=204)
+@app.delete("/api/tracked-players/{player_id}", status_code=204)
 def deletTrackedPlayer(player_id: str, db: Session = Depends(get_db)):
     delete_tracked_player(db, player_id)
 
     return {"detail": "Игрок удалён"}
 
 
+
+
+from fastapi.responses import FileResponse
+
+
+@app.get("/{full_path:path}")
+async def serve_react_app(full_path: str):
+    index_path = FRONTEND_DIST / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
+    raise HTTPException(status_code=404)
+
+
+
 if __name__ == "__main__":
-    uvicorn.run("main:app", reload=True, port=8001)
+    uvicorn.run(
+        "main:app",
+        port=8000,
+        reload=True
+    )
+
+
+
