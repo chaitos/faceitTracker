@@ -67,7 +67,7 @@ def calculate_player_status(last_match: dict) -> PlayerStatus:
     if diff <= timedelta(minutes=15):
         return PlayerStatus.RECENT_MATCH
 
-    if diff <= timedelta(hours=24):
+    if diff <= timedelta(hours=1):
         return PlayerStatus.SEARCHING
 
     return PlayerStatus.OFFLINE
