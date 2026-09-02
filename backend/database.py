@@ -1,9 +1,14 @@
-
-from sqlalchemy import create_engine, Integer, String, Column
+import os
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
+load_dotenv()
 
-DATABASE_URL = "postgresql+psycopg2://postgres:0811@localhost:5432/faceitTrackerDB" #указываем адрес бд
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is not set")
 
 engine = create_engine(DATABASE_URL)
 
@@ -13,11 +18,7 @@ SessionLocal = sessionmaker(
     autocommit=False
 )
 
-
-
 Base = declarative_base()
 
-Base.metadata.create_all(bind=engine)
-
-
-
+# Таблицы создаются миграциями Alembic (см. backend/alembic) — здесь не вызываем
+# Base.metadata.create_all(), чтобы не было двух конкурирующих источников схемы БД.

@@ -1,70 +1,57 @@
-# Faceit Tracker
+# Faceit Tracker 
 
-Простой и удобный трекер игроков Faceit с возможностью добавления, удаления и отслеживания статистики.
+Трекер игроков Faceit: добавляешь ник или ссылку на профиль, а фоновый процесс раз в 10 секунд опрашивает Faceit API и обновляет статус игрока (в поиске, в матче, недавно играл, оффлайн).
 
----
+## Возможности
 
-## 🔹 Технологии
+- Добавление игрока по нику или ссылке на профиль Faceit
+- Список отслеживаемых игроков с живым статусом
+- Удаление игрока из трекера
+- Фоновая асинхронная задача опрашивает Faceit API параллельно по всем игрокам (`asyncio.gather`)
+- Лимит на количество одновременно отслеживаемых игроков
 
-**Бэкенд:**  
-- FastAPI  
-- SQLAlchemy / PostgreSQL  
-- Pydantic для валидации данных  
-- Alembic для миграций базы данных  
+## Стек
 
-**Фронтенд:**  
-- React  
-- Tailwind CSS  
-- Axios для API-запросов  
+**Backend:** FastAPI, SQLAlchemy, PostgreSQL, Pydantic, Alembic, httpx
+**Frontend:** React, Vite, Tailwind CSS
 
----
+## Установка и запуск
 
-## 🔹 Функционал
+Нужен PostgreSQL, запущенный локально, и API-ключ Faceit ([faceit.com/developers](https://developers.faceit.com/)).
 
-- Добавление игроков по Faceit ID  
-- Просмотр списка отслеживаемых игроков  
-- Удаление игроков из трекера  
-- Просмотр детальной информации об игроке (статистика, рейтинги)  
-- Адаптивный и простой интерфейс  
+### Backend
 
----
+```bash
+git clone https://github.com/chaitos/faceitTracker.git
+cd faceitTracker/backend
 
-## 🔹 Установка
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
 
-### Бэкенд
-
-Клонируем репозиторий:
-git clone https://github.com/yourusername/faceit-tracker.git
-cd faceit-tracker/backend
-
-Устанавливаем зависимости:
 pip install -r requirements.txt
 
-Настраиваем переменные окружения в файле .env:
-DATABASE_URL=postgresql://user:password@localhost:5432/faceit_db
-FACEIT_API_KEY=your_faceit_api_key
+# создать .env на основе .env.example:
+# DATABASE_URL=postgresql+psycopg2://user:password@localhost:5432/faceitTrackerDB
+# FACEIT_API_KEY=ваш_ключ
 
-Применяем миграции:
 alembic upgrade head
-
-Запускаем сервер:
 uvicorn main:app --reload
-Фронтенд
+```
 
-Переходим в папку фронтенда:
+Backend поднимется на `http://localhost:8000`.
+
+### Frontend
+
+```bash
 cd ../frontend
-
-Устанавливаем зависимости:
 npm install
+npm run dev
+```
 
-Запускаем приложение:
-npm start
+Frontend поднимется на `http://localhost:5173` (Vite проксирует запросы `/api` на бекенд).
 
-Открываем в браузере:
-http://localhost:5174/
+## Возможные улучшения
 
-
-
-
-
-
+- [ ] Тесты
+- [ ] Docker Compose для БД + backend + frontend одной командой
+- [ ] Детальная статистика по матчам, а не только текущий статус

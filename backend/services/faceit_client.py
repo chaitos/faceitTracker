@@ -3,8 +3,8 @@ from fastapi import HTTPException
 
 import httpx
 
-from backend.enums import PlayerStatus
-from backend.config import FACEIT_API_KEY
+from enums import PlayerStatus
+from config import FACEIT_API_KEY
 
 
 
@@ -81,7 +81,6 @@ async def get_player_by_nickname(nickname: str) -> dict:
 
     async with httpx.AsyncClient(base_url="https://open.faceit.com/data/v4", headers=headers, timeout=10.0) as client:
         response = await client.get("/players", params={"nickname": nickname})
-        print(FACEIT_API_KEY)
         if response.status_code != 200:
             raise Exception(
                 f"Faceit API error {response.status_code}: {response.text}"

@@ -1,9 +1,9 @@
 import asyncio
 
-from backend.crud import get_tracked_players, update_tracked_player
-from backend.services.faceit_client import get_last_match, calculate_player_status
+from crud import get_tracked_players, update_tracked_player
+from services.faceit_client import get_last_match, calculate_player_status
 
-from backend.database import SessionLocal
+from database import SessionLocal
 
 async def track_players():
     while True:
